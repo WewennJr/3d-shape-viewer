@@ -4,7 +4,7 @@ import * as THREE from 'three';
 let currentMaterial = null;
 let currentMaterialType = 'standard';
 let materialParams = {
-  color: 0x4361ee,
+  color: '#4361ee',
   roughness: 0.3,
   metalness: 0.6,
   clearcoat: 0.2,
@@ -12,40 +12,42 @@ let materialParams = {
   transmission: 0,
   thickness: 0,
   ior: 1.5,
-  emissive: 0x000000,
+  emissive: '#000000',
   emissiveIntensity: 0,
 };
+
+function hexToColor(hex) {
+  return new THREE.Color(hex);
+}
 
 export function createMaterial(type) {
   currentMaterialType = type;
   
+  const baseProps = {
+    color: hexToColor(materialParams.color),
+    roughness: materialParams.roughness,
+    metalness: materialParams.metalness,
+    clearcoat: materialParams.clearcoat,
+    clearcoatRoughness: materialParams.clearcoatRoughness,
+  };
+  
   switch (type) {
     case 'standard':
-      return new THREE.MeshStandardMaterial({
-        color: materialParams.color,
-        roughness: materialParams.roughness,
-        metalness: materialParams.metalness,
-        clearcoat: materialParams.clearcoat,
-        clearcoatRoughness: materialParams.clearcoatRoughness,
-      });
+      return new THREE.MeshStandardMaterial({ ...baseProps });
       
     case 'physical':
       return new THREE.MeshPhysicalMaterial({
-        color: materialParams.color,
-        roughness: materialParams.roughness,
-        metalness: materialParams.metalness,
-        clearcoat: materialParams.clearcoat,
-        clearcoatRoughness: materialParams.clearcoatRoughness,
+        ...baseProps,
         transmission: materialParams.transmission,
         thickness: materialParams.thickness,
         ior: materialParams.ior,
-        emissive: materialParams.emissive,
+        emissive: hexToColor(materialParams.emissive),
         emissiveIntensity: materialParams.emissiveIntensity,
       });
       
     case 'phong':
       return new THREE.MeshPhongMaterial({
-        color: materialParams.color,
+        color: hexToColor(materialParams.color),
         shininess: 80,
         specular: 0x444444,
         flatShading: false,
@@ -53,31 +55,27 @@ export function createMaterial(type) {
       
     case 'toon':
       return new THREE.MeshToonMaterial({
-        color: materialParams.color,
+        color: hexToColor(materialParams.color),
         gradientMap: createToonGradient(),
       });
       
     case 'basic':
-      return new THREE.MeshBasicMaterial({ color: materialParams.color, wireframe: false });
+      return new THREE.MeshBasicMaterial({ color: hexToColor(materialParams.color), wireframe: false });
       
     case 'wireframe':
-      return new THREE.MeshBasicMaterial({ color: materialParams.color, wireframe: true });
+      return new THREE.MeshBasicMaterial({ color: hexToColor(materialParams.color), wireframe: true });
       
     case 'normal':
       return new THREE.MeshNormalMaterial({ flatShading: false });
       
     case 'matcap':
       return new THREE.MeshMatcapMaterial({
-        color: materialParams.color,
+        color: hexToColor(materialParams.color),
         matcap: createMatcapTexture(),
       });
       
     default:
-      return new THREE.MeshStandardMaterial({
-        color: materialParams.color,
-        roughness: materialParams.roughness,
-        metalness: materialParams.metalness,
-      });
+      return new THREE.MeshStandardMaterial({ ...baseProps });
   }
 }
 
@@ -121,7 +119,7 @@ export function updateMaterialParams(params) {
 }
 
 export function applyMaterialParams(material) {
-  if (material.color) material.color.setHex(materialParams.color);
+  if (material.color && materialParams.color) material.color.set(materialParams.color);
   if (material.roughness !== undefined) material.roughness = materialParams.roughness;
   if (material.metalness !== undefined) material.metalness = materialParams.metalness;
   if (material.clearcoat !== undefined) material.clearcoat = materialParams.clearcoat;
@@ -129,7 +127,7 @@ export function applyMaterialParams(material) {
   if (material.transmission !== undefined) material.transmission = materialParams.transmission;
   if (material.thickness !== undefined) material.thickness = materialParams.thickness;
   if (material.ior !== undefined) material.ior = materialParams.ior;
-  if (material.emissive) material.emissive.setHex(materialParams.emissive);
+  if (material.emissive && materialParams.emissive) material.emissive.set(materialParams.emissive);
   if (material.emissiveIntensity !== undefined) material.emissiveIntensity = materialParams.emissiveIntensity;
   material.needsUpdate = true;
 }

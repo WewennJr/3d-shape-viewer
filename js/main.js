@@ -6,7 +6,6 @@ import { createMaterial, updateMaterialParams, applyMaterialParams, setCurrentMa
 import { createLights, updateAmbientIntensity, updateDirLight, updateFillLight, updateRimLight, setShadowsEnabled } from './lights.js';
 import { createComposer, getComposer, setToneMapping, setExposure, setBloomEnabled, setBloomStrength, setBloomThreshold, setBloomRadius, setVignetteEnabled, setVignetteIntensity, setFXAAEnabled, resizeComposer, disposeComposer } from './postprocessing.js';
 import { loadEnvironment, getCurrentEnv } from './environment.js';
-import { createParticles, updateParticles, disposeParticles } from './particles.js';
 import { updateStats } from './stats.js';
 import { exportPNG, exportGLTF, exportConfig, getCurrentConfig } from './export.js';
 import { setupTabs, setupMaterialUI, updateMaterialUIVisibility, updateMaterialUIValues, setupLightingUI, setupPostProcessingUI, setupExportUI, setupEnvironmentUI, setupAnimationUI, setupKeyboard } from './ui.js';
@@ -45,7 +44,6 @@ setupResize(renderer, camera);
 
 // Initialize components
 createLights(scene);
-const particles = createParticles(scene);
 const composer = createComposer(renderer, scene, camera);
 
 // Load environment
@@ -83,6 +81,7 @@ function createMesh(shapeName, materialType) {
 
 let currentMesh = createMesh('torusKnot', 'standard');
 updateMaterialUIVisibility('standard');
+setActiveShapeButton('torusKnot');
 
 // Setup UI
 setupTabs();
@@ -206,7 +205,14 @@ setupKeyboard({
 const shapeButtonsContainer = document.getElementById('shape-buttons');
 createShapeButtons(shapeButtonsContainer, (shapeName) => {
   createMesh(shapeName, state.currentMaterialType);
+  setActiveShapeButton(shapeName);
 });
+
+function setActiveShapeButton(shapeName) {
+  document.querySelectorAll('.shape-btn').forEach(b => b.classList.remove('active'));
+  const btn = Array.from(document.querySelectorAll('.shape-btn')).find(b => b.textContent.toLowerCase() === shapeName.toLowerCase());
+  if (btn) btn.classList.add('active');
+}
 
 // Animation loop
 function animate() {
@@ -217,7 +223,6 @@ function animate() {
     currentMesh.rotation.y += 0.005 * state.rotationSpeed;
   }
   
-  updateParticles();
   controls.update();
   
   const composerInstance = getComposer();
@@ -231,6 +236,5 @@ animate();
 // Cleanup on unload
 window.addEventListener('beforeunload', () => {
   disposeMaterial();
-  disposeParticles();
   disposeComposer();
 });

@@ -46,7 +46,7 @@
           <div class="slider-row">
             <label>Vitesse rot.</label>
             <input type="range" id="speed-range" min="0" max="5" step="0.1" value="1">
-            <span id="speed-val" style="min-width: 35px;">1.0x</span>
+            <span class="slider-value" id="speed-val">1.00</span>
           </div>
         </div>
       </div>
@@ -73,36 +73,44 @@
             <input type="text" id="color-base-hex" value="#4361ee" readonly>
           </div>
           <div class="slider-row">
-            <label>Roughness: <span id="rough-val">0.3</span></label>
+            <label>Roughness</label>
             <input type="range" id="roughness" min="0" max="1" step="0.01" value="0.3">
+            <span class="slider-value" id="rough-val">0.30</span>
           </div>
           <div class="slider-row">
-            <label>Metalness: <span id="metal-val">0.6</span></label>
+            <label>Metalness</label>
             <input type="range" id="metalness" min="0" max="1" step="0.01" value="0.6">
+            <span class="slider-value" id="metal-val">0.60</span>
           </div>
           <div class="slider-row">
-            <label>Clearcoat: <span id="clear-val">0.2</span></label>
+            <label>Clearcoat</label>
             <input type="range" id="clearcoat" min="0" max="1" step="0.01" value="0.2">
+            <span class="slider-value" id="clear-val">0.20</span>
           </div>
           <div class="slider-row">
-            <label>Clearcoat R.: <span id="clearR-val">0.1</span></label>
+            <label>Clearcoat R.</label>
             <input type="range" id="clearcoatRoughness" min="0" max="1" step="0.01" value="0.1">
+            <span class="slider-value" id="clearR-val">0.10</span>
           </div>
           <div class="slider-row">
-            <label>Transmission: <span id="trans-val">0</span></label>
+            <label>Transmission</label>
             <input type="range" id="transmission" min="0" max="1" step="0.01" value="0">
+            <span class="slider-value" id="trans-val">0.00</span>
           </div>
           <div class="slider-row">
-            <label>Thickness: <span id="thick-val">0</span></label>
+            <label>Thickness</label>
             <input type="range" id="thickness" min="0" max="2" step="0.01" value="0">
+            <span class="slider-value" id="thick-val">0.00</span>
           </div>
           <div class="slider-row">
-            <label>IOR: <span id="ior-val">1.5</span></label>
+            <label>IOR</label>
             <input type="range" id="ior" min="1" max="3" step="0.01" value="1.5">
+            <span class="slider-value" id="ior-val">1.50</span>
           </div>
           <div class="slider-row">
-            <label>Emissive Int.: <span id="emi-val">0</span></label>
+            <label>Emissive Int.</label>
             <input type="range" id="emissiveIntensity" min="0" max="5" step="0.01" value="0">
+            <span class="slider-value" id="emi-val">0.00</span>
           </div>
           <div class="color-row">
             <label>Emissive</label>
@@ -115,29 +123,34 @@
       <!-- Lighting Tab -->
       <div class="tab-panel" id="tab-lighting">
         <div class="control-group">
-          <label>Ambient Intensity</label>
+          <label>Lumière ambiante</label>
           <div class="slider-row">
-            <span id="amb-val">0.5</span>
+            <label>Intensité</label>
             <input type="range" id="ambient-intensity" min="0" max="3" step="0.01" value="0.5">
+            <span class="slider-value" id="amb-val">0.50</span>
           </div>
         </div>
         <div class="control-group">
-          <label>Directional Light</label>
+          <label>Lumière principale (Directional)</label>
           <div class="slider-row">
             <label>Intensité</label>
             <input type="range" id="dir-intensity" min="0" max="5" step="0.01" value="1.5">
+            <span class="slider-value" id="dir-int-val">1.50</span>
           </div>
           <div class="slider-row">
             <label>Pos X</label>
             <input type="range" id="dir-x" min="-20" max="20" step="0.1" value="5">
+            <span class="slider-value" id="dir-x-val">5.0</span>
           </div>
           <div class="slider-row">
             <label>Pos Y</label>
             <input type="range" id="dir-y" min="0" max="30" step="0.1" value="10">
+            <span class="slider-value" id="dir-y-val">10.0</span>
           </div>
           <div class="slider-row">
             <label>Pos Z</label>
             <input type="range" id="dir-z" min="-20" max="20" step="0.1" value="7">
+            <span class="slider-value" id="dir-z-val">7.0</span>
           </div>
           <div class="color-row">
             <label>Couleur</label>
@@ -145,10 +158,11 @@
           </div>
         </div>
         <div class="control-group">
-          <label>Fill Light</label>
+          <label>Lumière de remplissage (Fill)</label>
           <div class="slider-row">
             <label>Intensité</label>
             <input type="range" id="fill-intensity" min="0" max="3" step="0.01" value="0.5">
+            <span class="slider-value" id="fill-int-val">0.50</span>
           </div>
           <div class="color-row">
             <label>Couleur</label>
@@ -156,10 +170,11 @@
           </div>
         </div>
         <div class="control-group">
-          <label>Rim Light</label>
+          <label>Lumière de contour (Rim)</label>
           <div class="slider-row">
             <label>Intensité</label>
             <input type="range" id="rim-intensity" min="0" max="2" step="0.01" value="0.4">
+            <span class="slider-value" id="rim-int-val">0.40</span>
           </div>
           <div class="color-row">
             <label>Couleur</label>
@@ -187,27 +202,32 @@
           </select>
         </div>
         <div class="control-group">
+          <label>Exposition</label>
           <div class="slider-row">
-            <label>Exposure: <span id="exp-val">1.2</span></label>
+            <label>Valeur</label>
             <input type="range" id="exposure" min="0.1" max="3" step="0.01" value="1.2">
+            <span class="slider-value" id="exp-val">1.20</span>
           </div>
         </div>
         <div class="control-group">
           <div class="checkbox-row">
             <input type="checkbox" id="bloom-enabled">
-            <label>Bloom Effect</label>
+            <label>Bloom (éclat)</label>
           </div>
           <div class="slider-row" id="bloom-strength-row" style="display:none;">
-            <label>Force: <span id="bloom-str-val">0.5</span></label>
+            <label>Force</label>
             <input type="range" id="bloom-strength" min="0" max="3" step="0.01" value="0.5">
+            <span class="slider-value" id="bloom-str-val">0.50</span>
           </div>
           <div class="slider-row" id="bloom-threshold-row" style="display:none;">
-            <label>Seuil: <span id="bloom-thresh-val">0.8</span></label>
+            <label>Seuil</label>
             <input type="range" id="bloom-threshold" min="0" max="1" step="0.01" value="0.8">
+            <span class="slider-value" id="bloom-thresh-val">0.80</span>
           </div>
           <div class="slider-row" id="bloom-radius-row" style="display:none;">
-            <label>Rayon: <span id="bloom-rad-val">0.4</span></label>
+            <label>Rayon</label>
             <input type="range" id="bloom-radius" min="0" max="1" step="0.01" value="0.4">
+            <span class="slider-value" id="bloom-rad-val">0.40</span>
           </div>
         </div>
         <div class="control-group">
@@ -216,8 +236,9 @@
             <label>Vignette</label>
           </div>
           <div class="slider-row" id="vignette-row" style="display:none;">
-            <label>Intensité: <span id="vig-val">0.3</span></label>
+            <label>Intensité</label>
             <input type="range" id="vignette" min="0" max="1" step="0.01" value="0.3">
+            <span class="slider-value" id="vig-val">0.30</span>
           </div>
         </div>
         <div class="control-group">
@@ -253,10 +274,10 @@
   </div>
 
   <div id="stats">
-    <div class="stat-line"><span>FPS</span><span class="stat-value" id="stat-fps">60</span></div>
-    <div class="stat-line"><span>Triangles</span><span class="stat-value" id="stat-tris">0</span></div>
-    <div class="stat-line"><span>Draw Calls</span><span class="stat-value" id="stat-draws">0</span></div>
-    <div class="stat-line"><span>Mémoire</span><span class="stat-value" id="stat-mem">0 MB</span></div>
+    <div class="stat-line"><span class="label">FPS</span><span class="value" id="stat-fps">60</span></div>
+    <div class="stat-line"><span class="label">Triangles</span><span class="value" id="stat-tris">0</span></div>
+    <div class="stat-line"><span class="label">Draw Calls</span><span class="value" id="stat-draws">0</span></div>
+    <div class="stat-line"><span class="label">Mémoire</span><span class="value" id="stat-mem">0 MB</span></div>
   </div>
 
   <div id="info">

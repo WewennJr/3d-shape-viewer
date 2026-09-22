@@ -36,41 +36,41 @@ export function setupMaterialUI(onMaterialChange, onParamChange) {
   const emissiveColor = document.getElementById('emissiveColor');
   const emissiveColorHex = document.getElementById('emissiveColor-hex');
   
-  colorBase.addEventListener('input', (e) => {
-    colorBaseHex.value = e.target.value;
-    onParamChange({ color: e.target.value });
-  });
+  function syncColor(colorInput, hexInput, paramName) {
+    colorInput.addEventListener('input', (e) => {
+      hexInput.value = e.target.value;
+      onParamChange({ [paramName]: e.target.value });
+    });
+    
+    hexInput.addEventListener('change', (e) => {
+      if (/^#[0-9A-Fa-f]{6}$/.test(e.target.value)) {
+        colorInput.value = e.target.value;
+        onParamChange({ [paramName]: e.target.value });
+      }
+    });
+  }
   
-  colorBaseHex.addEventListener('change', (e) => {
-    if (/^#[0-9A-Fa-f]{6}$/.test(e.target.value)) {
-      colorBase.value = e.target.value;
-      onParamChange({ color: e.target.value });
-    }
-  });
-  
-  emissiveColor.addEventListener('input', (e) => {
-    emissiveColorHex.value = e.target.value;
-    onParamChange({ emissive: e.target.value });
-  });
+  syncColor(colorBase, colorBaseHex, 'color');
+  syncColor(emissiveColor, emissiveColorHex, 'emissive');
   
   // Sliders
-  const sliders = [
-    { id: 'roughness', valId: 'rough-val', param: 'roughness', factor: 1 },
-    { id: 'metalness', valId: 'metal-val', param: 'metalness', factor: 1 },
-    { id: 'clearcoat', valId: 'clear-val', param: 'clearcoat', factor: 1 },
-    { id: 'clearcoatRoughness', valId: 'clearR-val', param: 'clearcoatRoughness', factor: 1 },
-    { id: 'transmission', valId: 'trans-val', param: 'transmission', factor: 1 },
-    { id: 'thickness', valId: 'thick-val', param: 'thickness', factor: 1 },
-    { id: 'ior', valId: 'ior-val', param: 'ior', factor: 1 },
-    { id: 'emissiveIntensity', valId: 'emi-val', param: 'emissiveIntensity', factor: 1 },
+  const sliderConfigs = [
+    { id: 'roughness', valId: 'rough-val', param: 'roughness' },
+    { id: 'metalness', valId: 'metal-val', param: 'metalness' },
+    { id: 'clearcoat', valId: 'clear-val', param: 'clearcoat' },
+    { id: 'clearcoatRoughness', valId: 'clearR-val', param: 'clearcoatRoughness' },
+    { id: 'transmission', valId: 'trans-val', param: 'transmission' },
+    { id: 'thickness', valId: 'thick-val', param: 'thickness' },
+    { id: 'ior', valId: 'ior-val', param: 'ior' },
+    { id: 'emissiveIntensity', valId: 'emi-val', param: 'emissiveIntensity' },
   ];
   
-  sliders.forEach(({ id, valId, param, factor }) => {
+  sliderConfigs.forEach(({ id, valId, param }) => {
     const slider = document.getElementById(id);
     const val = document.getElementById(valId);
     if (slider && val) {
       slider.addEventListener('input', (e) => {
-        const value = parseFloat(e.target.value) * factor;
+        const value = parseFloat(e.target.value);
         val.textContent = value.toFixed(2);
         onParamChange({ [param]: value });
       });
@@ -91,34 +91,32 @@ export function updateMaterialUIValues(params) {
   const emissiveColorHex = document.getElementById('emissiveColor-hex');
   
   if (params.color) {
-    const hex = '#' + params.color.toString(16).padStart(6, '0');
-    colorBase.value = hex;
-    colorBaseHex.value = hex;
+    colorBase.value = params.color;
+    colorBaseHex.value = params.color;
   }
   
   if (params.emissive) {
-    const hex = '#' + params.emissive.toString(16).padStart(6, '0');
-    emissiveColor.value = hex;
-    emissiveColorHex.value = hex;
+    emissiveColor.value = params.emissive;
+    emissiveColorHex.value = params.emissive;
   }
   
-  const sliderMap = {
-    roughness: 'roughness',
-    metalness: 'metalness',
-    clearcoat: 'clearcoat',
-    clearcoatRoughness: 'clearcoatRoughness',
-    transmission: 'transmission',
-    thickness: 'thickness',
-    ior: 'ior',
-    emissiveIntensity: 'emissiveIntensity',
-  };
+  const sliderConfigs = [
+    { id: 'roughness', valId: 'rough-val', param: 'roughness' },
+    { id: 'metalness', valId: 'metal-val', param: 'metalness' },
+    { id: 'clearcoat', valId: 'clear-val', param: 'clearcoat' },
+    { id: 'clearcoatRoughness', valId: 'clearR-val', param: 'clearcoatRoughness' },
+    { id: 'transmission', valId: 'trans-val', param: 'transmission' },
+    { id: 'thickness', valId: 'thick-val', param: 'thickness' },
+    { id: 'ior', valId: 'ior-val', param: 'ior' },
+    { id: 'emissiveIntensity', valId: 'emi-val', param: 'emissiveIntensity' },
+  ];
   
-  Object.entries(sliderMap).forEach(([id, param]) => {
+  sliderConfigs.forEach(({ id, valId, param }) => {
     const slider = document.getElementById(id);
-    const val = document.getElementById(id.replace(/([A-Z])/g, '-$1').toLowerCase() + '-val');
+    const val = document.getElementById(valId);
     if (slider && params[param] !== undefined) {
       slider.value = params[param];
-      if (val) val.textContent = params[param].toFixed(2);
+      val.textContent = params[param].toFixed(2);
     }
   });
 }
@@ -135,27 +133,57 @@ export function setupLightingUI(state, callbacks) {
   
   // Directional
   const dirIntensity = document.getElementById('dir-intensity');
+  const dirIntVal = document.getElementById('dir-int-val');
   const dirX = document.getElementById('dir-x');
+  const dirXVal = document.getElementById('dir-x-val');
   const dirY = document.getElementById('dir-y');
+  const dirYVal = document.getElementById('dir-y-val');
   const dirZ = document.getElementById('dir-z');
+  const dirZVal = document.getElementById('dir-z-val');
   const dirColor = document.getElementById('dir-color');
   
-  dirIntensity.addEventListener('input', (e) => callbacks.onDirLightChange({ intensity: parseFloat(e.target.value) }));
-  dirX.addEventListener('input', (e) => callbacks.onDirLightChange({ x: parseFloat(e.target.value) }));
-  dirY.addEventListener('input', (e) => callbacks.onDirLightChange({ y: parseFloat(e.target.value) }));
-  dirZ.addEventListener('input', (e) => callbacks.onDirLightChange({ z: parseFloat(e.target.value) }));
+  dirIntensity.addEventListener('input', (e) => {
+    const val = parseFloat(e.target.value);
+    dirIntVal.textContent = val.toFixed(2);
+    callbacks.onDirLightChange({ intensity: val });
+  });
+  dirX.addEventListener('input', (e) => {
+    const val = parseFloat(e.target.value);
+    dirXVal.textContent = val.toFixed(1);
+    callbacks.onDirLightChange({ x: val });
+  });
+  dirY.addEventListener('input', (e) => {
+    const val = parseFloat(e.target.value);
+    dirYVal.textContent = val.toFixed(1);
+    callbacks.onDirLightChange({ y: val });
+  });
+  dirZ.addEventListener('input', (e) => {
+    const val = parseFloat(e.target.value);
+    dirZVal.textContent = val.toFixed(1);
+    callbacks.onDirLightChange({ z: val });
+  });
   dirColor.addEventListener('input', (e) => callbacks.onDirLightChange({ color: e.target.value }));
   
   // Fill
   const fillIntensity = document.getElementById('fill-intensity');
+  const fillIntVal = document.getElementById('fill-int-val');
   const fillColor = document.getElementById('fill-color');
-  fillIntensity.addEventListener('input', (e) => callbacks.onFillLightChange({ intensity: parseFloat(e.target.value) }));
+  fillIntensity.addEventListener('input', (e) => {
+    const val = parseFloat(e.target.value);
+    fillIntVal.textContent = val.toFixed(2);
+    callbacks.onFillLightChange({ intensity: val });
+  });
   fillColor.addEventListener('input', (e) => callbacks.onFillLightChange({ color: e.target.value }));
   
   // Rim
   const rimIntensity = document.getElementById('rim-intensity');
+  const rimIntVal = document.getElementById('rim-int-val');
   const rimColor = document.getElementById('rim-color');
-  rimIntensity.addEventListener('input', (e) => callbacks.onRimLightChange({ intensity: parseFloat(e.target.value) }));
+  rimIntensity.addEventListener('input', (e) => {
+    const val = parseFloat(e.target.value);
+    rimIntVal.textContent = val.toFixed(2);
+    callbacks.onRimLightChange({ intensity: val });
+  });
   rimColor.addEventListener('input', (e) => callbacks.onRimLightChange({ color: e.target.value }));
   
   // Shadows
@@ -185,33 +213,42 @@ export function setupPostProcessingUI(callbacks) {
   
   bloomCheckbox.addEventListener('change', (e) => {
     const enabled = e.target.checked;
-    bloomRows.forEach(id => document.getElementById(id).style.display = enabled ? 'flex' : 'none');
+    bloomRows.forEach(id => {
+      const el = document.getElementById(id);
+      if (el) el.style.display = enabled ? 'flex' : 'none';
+    });
     callbacks.onBloomEnabledChange(enabled);
   });
   
   const bloomStrength = document.getElementById('bloom-strength');
   const bloomStrengthVal = document.getElementById('bloom-str-val');
-  bloomStrength.addEventListener('input', (e) => {
-    const val = parseFloat(e.target.value);
-    bloomStrengthVal.textContent = val.toFixed(2);
-    callbacks.onBloomStrengthChange(val);
-  });
+  if (bloomStrength && bloomStrengthVal) {
+    bloomStrength.addEventListener('input', (e) => {
+      const val = parseFloat(e.target.value);
+      bloomStrengthVal.textContent = val.toFixed(2);
+      callbacks.onBloomStrengthChange(val);
+    });
+  }
   
   const bloomThreshold = document.getElementById('bloom-threshold');
   const bloomThresholdVal = document.getElementById('bloom-thresh-val');
-  bloomThreshold.addEventListener('input', (e) => {
-    const val = parseFloat(e.target.value);
-    bloomThresholdVal.textContent = val.toFixed(2);
-    callbacks.onBloomThresholdChange(val);
-  });
+  if (bloomThreshold && bloomThresholdVal) {
+    bloomThreshold.addEventListener('input', (e) => {
+      const val = parseFloat(e.target.value);
+      bloomThresholdVal.textContent = val.toFixed(2);
+      callbacks.onBloomThresholdChange(val);
+    });
+  }
   
   const bloomRadius = document.getElementById('bloom-radius');
   const bloomRadiusVal = document.getElementById('bloom-rad-val');
-  bloomRadius.addEventListener('input', (e) => {
-    const val = parseFloat(e.target.value);
-    bloomRadiusVal.textContent = val.toFixed(2);
-    callbacks.onBloomRadiusChange(val);
-  });
+  if (bloomRadius && bloomRadiusVal) {
+    bloomRadius.addEventListener('input', (e) => {
+      const val = parseFloat(e.target.value);
+      bloomRadiusVal.textContent = val.toFixed(2);
+      callbacks.onBloomRadiusChange(val);
+    });
+  }
   
   // Vignette
   const vignetteCheckbox = document.getElementById('vignette-enabled');
@@ -219,17 +256,19 @@ export function setupPostProcessingUI(callbacks) {
   
   vignetteCheckbox.addEventListener('change', (e) => {
     const enabled = e.target.checked;
-    vignetteRow.style.display = enabled ? 'flex' : 'none';
+    if (vignetteRow) vignetteRow.style.display = enabled ? 'flex' : 'none';
     callbacks.onVignetteEnabledChange(enabled);
   });
   
   const vignetteSlider = document.getElementById('vignette');
   const vignetteVal = document.getElementById('vig-val');
-  vignetteSlider.addEventListener('input', (e) => {
-    const val = parseFloat(e.target.value);
-    vignetteVal.textContent = val.toFixed(2);
-    callbacks.onVignetteIntensityChange(val);
-  });
+  if (vignetteSlider && vignetteVal) {
+    vignetteSlider.addEventListener('input', (e) => {
+      const val = parseFloat(e.target.value);
+      vignetteVal.textContent = val.toFixed(2);
+      callbacks.onVignetteIntensityChange(val);
+    });
+  }
   
   // FXAA
   document.getElementById('fxaa-enabled').addEventListener('change', (e) => {

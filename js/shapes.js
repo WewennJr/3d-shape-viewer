@@ -2,6 +2,7 @@
 import * as THREE from 'three';
 
 export const geometries = {
+  torusKnot: new THREE.TorusKnotGeometry(0.7, 0.25, 128, 32),
   cube: new THREE.BoxGeometry(1.5, 1.5, 1.5, 4, 4, 4),
   sphere: new THREE.SphereGeometry(1, 64, 64),
   torus: new THREE.TorusGeometry(0.8, 0.35, 32, 64),
@@ -9,7 +10,6 @@ export const geometries = {
   cylinder: new THREE.CylinderGeometry(0.8, 0.8, 1.8, 32),
   dodecahedron: new THREE.DodecahedronGeometry(1.1, 1),
   icosahedron: new THREE.IcosahedronGeometry(1.1, 1),
-  torusKnot: new THREE.TorusKnotGeometry(0.7, 0.25, 128, 32),
   octahedron: new THREE.OctahedronGeometry(1.2, 1),
   tetrahedron: new THREE.TetrahedronGeometry(1.3, 1),
   ring: new THREE.RingGeometry(0.5, 1, 32),
@@ -37,8 +37,9 @@ export const shapeNames = Object.keys(geometries);
 export function createShapeButtons(container, onShapeSelect) {
   shapeNames.forEach((name, i) => {
     const btn = document.createElement('button');
-    btn.className = 'shape-btn' + (i === shapeNames.length - 1 ? ' active' : '');
-    btn.textContent = name.charAt(0).toUpperCase() + name.slice(1);
+    btn.className = 'shape-btn' + (i === 0 ? ' active' : '');
+    btn.textContent = formatShapeName(name);
+    btn.dataset.shape = name;
     btn.onclick = () => {
       document.querySelectorAll('.shape-btn').forEach(b => b.classList.remove('active'));
       btn.classList.add('active');
@@ -46,6 +47,27 @@ export function createShapeButtons(container, onShapeSelect) {
     };
     container.appendChild(btn);
   });
+}
+
+function formatShapeName(name) {
+  const names = {
+    torusKnot: 'Tore Nœud',
+    cube: 'Cube',
+    sphere: 'Sphère',
+    torus: 'Tore',
+    cone: 'Cône',
+    cylinder: 'Cylindre',
+    dodecahedron: 'Dodécaèdre',
+    icosahedron: 'Icosaèdre',
+    octahedron: 'Octaèdre',
+    tetrahedron: 'Tétraèdre',
+    ring: 'Anneau',
+    plane: 'Plan',
+    capsule: 'Capsule',
+    lathe: 'Tournage',
+    extrude: 'Extrusion',
+  };
+  return names[name] || name.charAt(0).toUpperCase() + name.slice(1);
 }
 
 export function getGeometry(name) {

@@ -19,17 +19,26 @@ export function loadEnvironment(name, scene) {
     scene.environment = null;
     scene.background = new THREE.Color(0x1a1a2e);
     currentEnv = 'none';
-    return;
+    return Promise.resolve();
   }
   
   const url = environments[name];
-  if (!url) return;
+  if (!url) return Promise.resolve();
   
-  rgbeLoader.load(url, (texture) => {
-    texture.mapping = THREE.EquirectangularReflectionMapping;
-    scene.environment = texture;
-    scene.background = texture;
-    currentEnv = name;
+  return new Promise((resolve) => {
+    rgbeLoader.load(url, (texture) => {
+      texture.mapping = THREE.EquirectangularReflectionMapping;
+      texture.colorSpace = THREE.SRGBColorSpace;
+      scene.environment = texture;
+      scene.background = texture;
+      currentEnv = name;
+      resolve();
+    }, undefined, (err) => {
+      console.error('Failed to load environment:', err);
+      scene.environment = null;
+      scene.background = new THREE.Color(0x1a1a2e);
+      resolve();
+    });
   });
 }
 
