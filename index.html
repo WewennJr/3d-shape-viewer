@@ -1,0 +1,369 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Visualiseur 3D</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { overflow: hidden; font-family: system-ui, sans-serif; background: #1a1a2e; }
+    #canvas { display: block; }
+    #ui {
+      position: fixed;
+      top: 20px;
+      left: 20px;
+      z-index: 10;
+      color: #eee;
+      pointer-events: none;
+    }
+    #ui h1 { font-size: 1.5rem; font-weight: 600; margin-bottom: 0.5rem; text-shadow: 0 2px 10px rgba(0,0,0,0.5); }
+    #controls {
+      pointer-events: auto;
+      background: rgba(20, 20, 40, 0.9);
+      padding: 1rem;
+      border-radius: 12px;
+      backdrop-filter: blur(10px);
+      border: 1px solid rgba(255,255,255,0.1);
+      min-width: 200px;
+    }
+    .control-group { margin-bottom: 1rem; }
+    .control-group label { display: block; margin-bottom: 0.3rem; font-size: 0.85rem; opacity: 0.8; }
+    select, button {
+      width: 100%;
+      padding: 0.5rem;
+      border-radius: 6px;
+      border: 1px solid rgba(255,255,255,0.2);
+      background: rgba(255,255,255,0.05);
+      color: #eee;
+      font-size: 0.9rem;
+      cursor: pointer;
+    }
+    select:hover, button:hover { background: rgba(255,255,255,0.15); }
+    .btn-row { display: flex; gap: 0.5rem; }
+    .btn-row button { flex: 1; }
+    #info {
+      position: fixed;
+      bottom: 20px;
+      left: 20px;
+      right: 20px;
+      color: rgba(255,255,255,0.6);
+      font-size: 0.8rem;
+      pointer-events: none;
+      text-align: center;
+    }
+    .shape-btn { transition: all 0.2s; }
+    .shape-btn.active { background: #4361ee; border-color: #4361ee; }
+  </style>
+</head>
+<body>
+  <div id="ui">
+    <h1>🔭 Visualiseur 3D</h1>
+    <div id="controls">
+      <div class="control-group">
+        <label>Forme</label>
+        <div id="shape-buttons"></div>
+      </div>
+      <div class="control-group">
+        <label>Matériau</label>
+        <select id="material-select">
+          <option value="standard">Standard (PBR)</option>
+          <option value="phong">Phong</option>
+          <option value="basic">Basic (sans lumière)</option>
+          <option value="wireframe">Fil de fer</option>
+          <option value="normal">Normales</option>
+        </select>
+      </div>
+      <div class="control-group">
+        <label>Environnement</label>
+        <select id="env-select">
+          <option value="studio">Studio</option>
+          <option value="sunset">Coucher de soleil</option>
+          <option value="night">Nuit</option>
+          <option value="warehouse">Entrepôt</option>
+          <option value="none">Aucun</option>
+        </select>
+      </div>
+      <div class="control-group">
+        <div class="btn-row">
+          <button id="reset-cam">Réinitialiser caméra</button>
+          <button id="toggle-anim">Pause/Reprendre</button>
+        </div>
+      </div>
+      <div class="control-group">
+        <label>Vitesse rotation: <span id="speed-val">1.0</span>x</label>
+        <input type="range" id="speed-range" min="0" max="3" step="0.1" value="1">
+      </div>
+    </div>
+  </div>
+  <div id="info">
+    🖱️ Clic gauche: orbiter | 🖱️ Molette: zoom | 🖱️ Clic droit: panoramique | Espace: pause animation
+  </div>
+  <canvas id="canvas"></canvas>
+  <script type="importmap">
+  {
+    "imports": {
+      "three": "https://unpkg.com/three@0.165.0/build/three.module.js",
+      "three/addons/": "https://unpkg.com/three@0.165.0/examples/jsm/"
+    }
+  }
+  </script>
+  <script type="module">
+    import * as THREE from 'three';
+    import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+    import { RGBELoader } from 'three/addons/loaders/RGBELoader.js';
+
+    // Scene setup
+    const canvas = document.getElementById('canvas');
+    const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: true });
+    renderer.setSize(window.innerWidth, window.innerHeight);
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+    renderer.toneMapping = THREE.ACESFilmicToneMapping;
+    renderer.toneMappingExposure = 1.2;
+    renderer.shadowMap.enabled = true;
+    renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+
+    const scene = new THREE.Scene();
+    scene.background = new THREE.Color(0x1a1a2e);
+
+    const camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.1, 100);
+    camera.position.set(4, 3, 5);
+
+    const controls = new OrbitControls(camera, canvas);
+    controls.enableDamping = true;
+    controls.dampingFactor = 0.05;
+    controls.minDistance = 2;
+    controls.maxDistance = 20;
+    controls.target.set(0, 0, 0);
+
+    // Shapes
+    const geometries = {
+      cube: new THREE.BoxGeometry(1.5, 1.5, 1.5, 4, 4, 4),
+      sphere: new THREE.SphereGeometry(1, 64, 64),
+      torus: new THREE.TorusGeometry(0.8, 0.35, 32, 64),
+      cone: new THREE.ConeGeometry(1, 1.8, 32),
+      cylinder: new THREE.CylinderGeometry(0.8, 0.8, 1.8, 32),
+      dodecahedron: new THREE.DodecahedronGeometry(1.1, 1),
+      icosahedron: new THREE.IcosahedronGeometry(1.1, 1),
+      torusKnot: new THREE.TorusKnotGeometry(0.7, 0.25, 128, 32),
+    };
+
+    let currentShape = 'torusKnot';
+    let currentMesh = null;
+    let currentMaterial = null;
+    let rotationSpeed = 1;
+    let isAnimating = true;
+
+    // Environment maps
+    const environments = {
+      studio: 'https://dl.polyhaven.org/file/ph-assets/HDRIs/hdr/1k/studio_small_03_1k.hdr',
+      sunset: 'https://dl.polyhaven.org/file/ph-assets/HDRIs/hdr/1k/sunset_1k.hdr',
+      night: 'https://dl.polyhaven.org/file/ph-assets/HDRIs/hdr/1k/night_1k.hdr',
+      warehouse: 'https://dl.polyhaven.org/file/ph-assets/HDRIs/hdr/1k/warehouse_1k.hdr',
+    };
+    let currentEnv = 'studio';
+    let envMap = null;
+    const rgbeLoader = new RGBELoader();
+
+    function loadEnvironment(name) {
+      if (name === 'none') {
+        scene.environment = null;
+        scene.background = new THREE.Color(0x1a1a2e);
+        return;
+      }
+      const url = environments[name];
+      if (!url) return;
+      rgbeLoader.load(url, (texture) => {
+        texture.mapping = THREE.EquirectangularReflectionMapping;
+        scene.environment = texture;
+        scene.background = texture;
+        currentEnv = name;
+      });
+    }
+
+    // Materials
+    function createMaterial(type) {
+      const baseProps = {
+        color: 0x4361ee,
+        roughness: 0.3,
+        metalness: 0.6,
+        clearcoat: 0.2,
+        clearcoatRoughness: 0.1,
+      };
+
+      switch (type) {
+        case 'standard':
+          return new THREE.MeshStandardMaterial({ ...baseProps });
+        case 'phong':
+          return new THREE.MeshPhongMaterial({
+            color: 0x4361ee,
+            shininess: 80,
+            specular: 0x444444,
+            flatShading: false,
+          });
+        case 'basic':
+          return new THREE.MeshBasicMaterial({ color: 0x4361ee, wireframe: false });
+        case 'wireframe':
+          return new THREE.MeshBasicMaterial({ color: 0x4361ee, wireframe: true });
+        case 'normal':
+          return new THREE.MeshNormalMaterial({ flatShading: false });
+        default:
+          return new THREE.MeshStandardMaterial({ ...baseProps });
+      }
+    }
+
+    function createMesh(shapeName, materialType) {
+      if (currentMesh) {
+        scene.remove(currentMesh);
+        currentMesh.geometry.dispose();
+        if (currentMaterial) currentMaterial.dispose();
+      }
+
+      const geometry = geometries[shapeName].clone();
+      currentMaterial = createMaterial(materialType);
+      currentMesh = new THREE.Mesh(geometry, currentMaterial);
+      currentMesh.castShadow = true;
+      currentMesh.receiveShadow = true;
+      scene.add(currentMesh);
+      currentShape = shapeName;
+    }
+
+    // Lights
+    const ambientLight = new THREE.AmbientLight(0xffffff, 0.5);
+    scene.add(ambientLight);
+
+    const dirLight = new THREE.DirectionalLight(0xffffff, 1.5);
+    dirLight.position.set(5, 10, 7);
+    dirLight.castShadow = true;
+    dirLight.shadow.mapSize.width = 2048;
+    dirLight.shadow.mapSize.height = 2048;
+    dirLight.shadow.camera.near = 0.5;
+    dirLight.shadow.camera.far = 30;
+    dirLight.shadow.camera.left = -8;
+    dirLight.shadow.camera.right = 8;
+    dirLight.shadow.camera.top = 8;
+    dirLight.shadow.camera.bottom = -8;
+    dirLight.shadow.bias = -0.0005;
+    scene.add(dirLight);
+
+    const fillLight = new THREE.DirectionalLight(0x4361ee, 0.5);
+    fillLight.position.set(-5, 3, -5);
+    scene.add(fillLight);
+
+    const rimLight = new THREE.DirectionalLight(0xff6b6b, 0.4);
+    rimLight.position.set(0, -5, 0);
+    scene.add(rimLight);
+
+    // Ground plane
+    const groundGeo = new THREE.PlaneGeometry(50, 50);
+    const groundMat = new THREE.ShadowMaterial({ opacity: 0.15 });
+    const ground = new THREE.Mesh(groundGeo, groundMat);
+    ground.rotation.x = -Math.PI / 2;
+    ground.position.y = -1.5;
+    ground.receiveShadow = true;
+    scene.add(ground);
+
+    // Particles
+    const particlesGeo = new THREE.BufferGeometry();
+    const particlesCount = 500;
+    const positions = new Float32Array(particlesCount * 3);
+    const sizes = new Float32Array(particlesCount);
+    for (let i = 0; i < particlesCount; i++) {
+      positions[i * 3] = (Math.random() - 0.5) * 40;
+      positions[i * 3 + 1] = (Math.random() - 0.5) * 40;
+      positions[i * 3 + 2] = (Math.random() - 0.5) * 40;
+      sizes[i] = Math.random() * 2 + 0.5;
+    }
+    particlesGeo.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+    particlesGeo.setAttribute('size', new THREE.BufferAttribute(sizes, 1));
+    const particlesMat = new THREE.PointsMaterial({
+      color: 0x4361ee,
+      size: 1,
+      transparent: true,
+      opacity: 0.4,
+      sizeAttenuation: true,
+    });
+    const particles = new THREE.Points(particlesGeo, particlesMat);
+    scene.add(particles);
+
+    // UI Setup
+    const shapeButtons = document.getElementById('shape-buttons');
+    Object.keys(geometries).forEach((name, i) => {
+      const btn = document.createElement('button');
+      btn.className = 'shape-btn' + (i === Object.keys(geometries).length - 1 ? ' active' : '');
+      btn.textContent = name.charAt(0).toUpperCase() + name.slice(1);
+      btn.onclick = () => {
+        document.querySelectorAll('.shape-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        createMesh(name, document.getElementById('material-select').value);
+      };
+      shapeButtons.appendChild(btn);
+    });
+
+    document.getElementById('material-select').onchange = (e) => {
+      createMesh(currentShape, e.target.value);
+    };
+
+    document.getElementById('env-select').onchange = (e) => {
+      loadEnvironment(e.target.value);
+    };
+
+    document.getElementById('reset-cam').onclick = () => {
+      controls.reset();
+      camera.position.set(4, 3, 5);
+      controls.target.set(0, 0, 0);
+    };
+
+    document.getElementById('toggle-anim').onclick = () => {
+      isAnimating = !isAnimating;
+    };
+
+    document.getElementById('speed-range').oninput = (e) => {
+      rotationSpeed = parseFloat(e.target.value);
+      document.getElementById('speed-val').textContent = rotationSpeed.toFixed(1);
+    };
+
+    // Keyboard
+    window.addEventListener('keydown', (e) => {
+      if (e.code === 'Space') {
+        e.preventDefault();
+        isAnimating = !isAnimating;
+      }
+      if (e.key === 'r' || e.key === 'R') {
+        controls.reset();
+        camera.position.set(4, 3, 5);
+        controls.target.set(0, 0, 0);
+      }
+    });
+
+    // Resize
+    window.addEventListener('resize', () => {
+      camera.aspect = window.innerWidth / window.innerHeight;
+      camera.updateProjectionMatrix();
+      renderer.setSize(window.innerWidth, window.innerHeight);
+    });
+
+    // Initial load
+    loadEnvironment('studio');
+    createMesh('torusKnot', 'standard');
+
+    // Animation loop
+    let time = 0;
+    function animate() {
+      requestAnimationFrame(animate);
+      const dt = 1 / 60;
+      time += dt;
+
+      if (isAnimating && currentMesh) {
+        currentMesh.rotation.x += 0.003 * rotationSpeed;
+        currentMesh.rotation.y += 0.005 * rotationSpeed;
+      }
+
+      particles.rotation.y += 0.0001;
+
+      controls.update();
+      renderer.render(scene, camera);
+    }
+    animate();
+  </script>
+</body>
+</html>
