@@ -3,102 +3,267 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Visualiseur 3D</title>
-  <style>
-    * { margin: 0; padding: 0; box-sizing: border-box; }
-    body { overflow: hidden; font-family: system-ui, sans-serif; background: #1a1a2e; }
-    #canvas { display: block; }
-    #ui {
-      position: fixed;
-      top: 20px;
-      left: 20px;
-      z-index: 10;
-      color: #eee;
-      pointer-events: none;
-    }
-    #ui h1 { font-size: 1.5rem; font-weight: 600; margin-bottom: 0.5rem; text-shadow: 0 2px 10px rgba(0,0,0,0.5); }
-    #controls {
-      pointer-events: auto;
-      background: rgba(20, 20, 40, 0.9);
-      padding: 1rem;
-      border-radius: 12px;
-      backdrop-filter: blur(10px);
-      border: 1px solid rgba(255,255,255,0.1);
-      min-width: 200px;
-    }
-    .control-group { margin-bottom: 1rem; }
-    .control-group label { display: block; margin-bottom: 0.3rem; font-size: 0.85rem; opacity: 0.8; }
-    select, button {
-      width: 100%;
-      padding: 0.5rem;
-      border-radius: 6px;
-      border: 1px solid rgba(255,255,255,0.2);
-      background: rgba(255,255,255,0.05);
-      color: #eee;
-      font-size: 0.9rem;
-      cursor: pointer;
-    }
-    select:hover, button:hover { background: rgba(255,255,255,0.15); }
-    .btn-row { display: flex; gap: 0.5rem; }
-    .btn-row button { flex: 1; }
-    #info {
-      position: fixed;
-      bottom: 20px;
-      left: 20px;
-      right: 20px;
-      color: rgba(255,255,255,0.6);
-      font-size: 0.8rem;
-      pointer-events: none;
-      text-align: center;
-    }
-    .shape-btn { transition: all 0.2s; }
-    .shape-btn.active { background: #4361ee; border-color: #4361ee; }
-  </style>
+  <title>Visualiseur 3D - Vynkor</title>
+  <link rel="stylesheet" href="css/styles.css">
 </head>
 <body>
   <div id="ui">
     <h1>🔭 Visualiseur 3D</h1>
+    <div class="tabs" id="tabs">
+      <button class="tab-btn active" data-tab="shapes">📐 Formes</button>
+      <button class="tab-btn" data-tab="material">🎨 Matériau</button>
+      <button class="tab-btn" data-tab="lighting">💡 Éclairage</button>
+      <button class="tab-btn" data-tab="post">✨ Post-proc</button>
+      <button class="tab-btn" data-tab="export">💾 Export</button>
+    </div>
+
     <div id="controls">
-      <div class="control-group">
-        <label>Forme</label>
-        <div id="shape-buttons"></div>
-      </div>
-      <div class="control-group">
-        <label>Matériau</label>
-        <select id="material-select">
-          <option value="standard">Standard (PBR)</option>
-          <option value="phong">Phong</option>
-          <option value="basic">Basic (sans lumière)</option>
-          <option value="wireframe">Fil de fer</option>
-          <option value="normal">Normales</option>
-        </select>
-      </div>
-      <div class="control-group">
-        <label>Environnement</label>
-        <select id="env-select">
-          <option value="studio">Studio</option>
-          <option value="sunset">Coucher de soleil</option>
-          <option value="night">Nuit</option>
-          <option value="warehouse">Entrepôt</option>
-          <option value="none">Aucun</option>
-        </select>
-      </div>
-      <div class="control-group">
-        <div class="btn-row">
-          <button id="reset-cam">Réinitialiser caméra</button>
-          <button id="toggle-anim">Pause/Reprendre</button>
+      <!-- Shapes Tab -->
+      <div class="tab-panel active" id="tab-shapes">
+        <div class="control-group">
+          <label>Forme</label>
+          <div class="shape-grid" id="shape-buttons"></div>
+        </div>
+        <div class="control-group">
+          <label>Environnement</label>
+          <select id="env-select">
+            <option value="studio">Studio</option>
+            <option value="sunset">Coucher de soleil</option>
+            <option value="night">Nuit</option>
+            <option value="warehouse">Entrepôt</option>
+            <option value="forest">Forêt</option>
+            <option value="apartment">Appartement</option>
+            <option value="none">Aucun</option>
+          </select>
+        </div>
+        <div class="control-group">
+          <div class="btn-row">
+            <button id="reset-cam">🔄 Réinitialiser caméra</button>
+            <button id="toggle-anim">⏯️ Pause/Reprendre</button>
+          </div>
+        </div>
+        <div class="control-group">
+          <div class="slider-row">
+            <label>Vitesse rot.</label>
+            <input type="range" id="speed-range" min="0" max="5" step="0.1" value="1">
+            <span id="speed-val" style="min-width: 35px;">1.0x</span>
+          </div>
         </div>
       </div>
-      <div class="control-group">
-        <label>Vitesse rotation: <span id="speed-val">1.0</span>x</label>
-        <input type="range" id="speed-range" min="0" max="3" step="0.1" value="1">
+
+      <!-- Material Tab -->
+      <div class="tab-panel" id="tab-material">
+        <div class="control-group">
+          <label>Type de matériau</label>
+          <select id="material-select">
+            <option value="standard">Standard PBR</option>
+            <option value="physical">Physical (transmission)</option>
+            <option value="phong">Phong</option>
+            <option value="toon">Toon / Cel-shaded</option>
+            <option value="basic">Basic (unlit)</option>
+            <option value="wireframe">Fil de fer</option>
+            <option value="normal">Normales</option>
+            <option value="matcap">MatCap</option>
+          </select>
+        </div>
+        <div class="control-group" id="pbr-controls">
+          <div class="color-row">
+            <label>Couleur</label>
+            <input type="color" id="color-base" value="#4361ee">
+            <input type="text" id="color-base-hex" value="#4361ee" readonly>
+          </div>
+          <div class="slider-row">
+            <label>Roughness: <span id="rough-val">0.3</span></label>
+            <input type="range" id="roughness" min="0" max="1" step="0.01" value="0.3">
+          </div>
+          <div class="slider-row">
+            <label>Metalness: <span id="metal-val">0.6</span></label>
+            <input type="range" id="metalness" min="0" max="1" step="0.01" value="0.6">
+          </div>
+          <div class="slider-row">
+            <label>Clearcoat: <span id="clear-val">0.2</span></label>
+            <input type="range" id="clearcoat" min="0" max="1" step="0.01" value="0.2">
+          </div>
+          <div class="slider-row">
+            <label>Clearcoat R.: <span id="clearR-val">0.1</span></label>
+            <input type="range" id="clearcoatRoughness" min="0" max="1" step="0.01" value="0.1">
+          </div>
+          <div class="slider-row">
+            <label>Transmission: <span id="trans-val">0</span></label>
+            <input type="range" id="transmission" min="0" max="1" step="0.01" value="0">
+          </div>
+          <div class="slider-row">
+            <label>Thickness: <span id="thick-val">0</span></label>
+            <input type="range" id="thickness" min="0" max="2" step="0.01" value="0">
+          </div>
+          <div class="slider-row">
+            <label>IOR: <span id="ior-val">1.5</span></label>
+            <input type="range" id="ior" min="1" max="3" step="0.01" value="1.5">
+          </div>
+          <div class="slider-row">
+            <label>Emissive Int.: <span id="emi-val">0</span></label>
+            <input type="range" id="emissiveIntensity" min="0" max="5" step="0.01" value="0">
+          </div>
+          <div class="color-row">
+            <label>Emissive</label>
+            <input type="color" id="emissiveColor" value="#000000">
+            <input type="text" id="emissiveColor-hex" value="#000000" readonly>
+          </div>
+        </div>
+      </div>
+
+      <!-- Lighting Tab -->
+      <div class="tab-panel" id="tab-lighting">
+        <div class="control-group">
+          <label>Ambient Intensity</label>
+          <div class="slider-row">
+            <span id="amb-val">0.5</span>
+            <input type="range" id="ambient-intensity" min="0" max="3" step="0.01" value="0.5">
+          </div>
+        </div>
+        <div class="control-group">
+          <label>Directional Light</label>
+          <div class="slider-row">
+            <label>Intensité</label>
+            <input type="range" id="dir-intensity" min="0" max="5" step="0.01" value="1.5">
+          </div>
+          <div class="slider-row">
+            <label>Pos X</label>
+            <input type="range" id="dir-x" min="-20" max="20" step="0.1" value="5">
+          </div>
+          <div class="slider-row">
+            <label>Pos Y</label>
+            <input type="range" id="dir-y" min="0" max="30" step="0.1" value="10">
+          </div>
+          <div class="slider-row">
+            <label>Pos Z</label>
+            <input type="range" id="dir-z" min="-20" max="20" step="0.1" value="7">
+          </div>
+          <div class="color-row">
+            <label>Couleur</label>
+            <input type="color" id="dir-color" value="#ffffff">
+          </div>
+        </div>
+        <div class="control-group">
+          <label>Fill Light</label>
+          <div class="slider-row">
+            <label>Intensité</label>
+            <input type="range" id="fill-intensity" min="0" max="3" step="0.01" value="0.5">
+          </div>
+          <div class="color-row">
+            <label>Couleur</label>
+            <input type="color" id="fill-color" value="#4361ee">
+          </div>
+        </div>
+        <div class="control-group">
+          <label>Rim Light</label>
+          <div class="slider-row">
+            <label>Intensité</label>
+            <input type="range" id="rim-intensity" min="0" max="2" step="0.01" value="0.4">
+          </div>
+          <div class="color-row">
+            <label>Couleur</label>
+            <input type="color" id="rim-color" value="#ff6b6b">
+          </div>
+        </div>
+        <div class="control-group">
+          <div class="checkbox-row">
+            <input type="checkbox" id="shadows-enabled" checked>
+            <label>Ombres activées</label>
+          </div>
+        </div>
+      </div>
+
+      <!-- Post-processing Tab -->
+      <div class="tab-panel" id="tab-post">
+        <div class="control-group">
+          <label>Tone Mapping</label>
+          <select id="tone-mapping">
+            <option value="none">Aucun</option>
+            <option value="linear">Linear</option>
+            <option value="reinhard">Reinhard</option>
+            <option value="cineon">Cineon</option>
+            <option value="aces" selected>ACES Filmic</option>
+          </select>
+        </div>
+        <div class="control-group">
+          <div class="slider-row">
+            <label>Exposure: <span id="exp-val">1.2</span></label>
+            <input type="range" id="exposure" min="0.1" max="3" step="0.01" value="1.2">
+          </div>
+        </div>
+        <div class="control-group">
+          <div class="checkbox-row">
+            <input type="checkbox" id="bloom-enabled">
+            <label>Bloom Effect</label>
+          </div>
+          <div class="slider-row" id="bloom-strength-row" style="display:none;">
+            <label>Force: <span id="bloom-str-val">0.5</span></label>
+            <input type="range" id="bloom-strength" min="0" max="3" step="0.01" value="0.5">
+          </div>
+          <div class="slider-row" id="bloom-threshold-row" style="display:none;">
+            <label>Seuil: <span id="bloom-thresh-val">0.8</span></label>
+            <input type="range" id="bloom-threshold" min="0" max="1" step="0.01" value="0.8">
+          </div>
+          <div class="slider-row" id="bloom-radius-row" style="display:none;">
+            <label>Rayon: <span id="bloom-rad-val">0.4</span></label>
+            <input type="range" id="bloom-radius" min="0" max="1" step="0.01" value="0.4">
+          </div>
+        </div>
+        <div class="control-group">
+          <div class="checkbox-row">
+            <input type="checkbox" id="vignette-enabled">
+            <label>Vignette</label>
+          </div>
+          <div class="slider-row" id="vignette-row" style="display:none;">
+            <label>Intensité: <span id="vig-val">0.3</span></label>
+            <input type="range" id="vignette" min="0" max="1" step="0.01" value="0.3">
+          </div>
+        </div>
+        <div class="control-group">
+          <div class="checkbox-row">
+            <input type="checkbox" id="fxaa-enabled">
+            <label>FXAA (Anti-aliasing)</label>
+          </div>
+        </div>
+      </div>
+
+      <!-- Export Tab -->
+      <div class="tab-panel" id="tab-export">
+        <div class="control-group">
+          <button class="export-btn" id="export-png">📸 Capture d'écran (PNG)</button>
+        </div>
+        <div class="control-group">
+          <button class="export-btn" id="export-gltf">📦 Exporter GLTF</button>
+        </div>
+        <div class="control-group">
+          <button class="export-btn" id="export-json">📋 Copier config JSON</button>
+        </div>
+        <div class="control-group">
+          <label>Résolution capture</label>
+          <select id="screenshot-resolution">
+            <option value="1">1x (écran)</option>
+            <option value="2">2x</option>
+            <option value="3">3x</option>
+            <option value="4">4x</option>
+          </select>
+        </div>
       </div>
     </div>
   </div>
+
+  <div id="stats">
+    <div class="stat-line"><span>FPS</span><span class="stat-value" id="stat-fps">60</span></div>
+    <div class="stat-line"><span>Triangles</span><span class="stat-value" id="stat-tris">0</span></div>
+    <div class="stat-line"><span>Draw Calls</span><span class="stat-value" id="stat-draws">0</span></div>
+    <div class="stat-line"><span>Mémoire</span><span class="stat-value" id="stat-mem">0 MB</span></div>
+  </div>
+
   <div id="info">
-    🖱️ Clic gauche: orbiter | 🖱️ Molette: zoom | 🖱️ Clic droit: panoramique | Espace: pause animation
+    🖱️ Clic gauche: orbiter | 🖱️ Molette: zoom | 🖱️ Clic droit: panoramique | Espace: pause animation | R: reset caméra
   </div>
   <canvas id="canvas"></canvas>
+
   <script type="importmap">
   {
     "imports": {
@@ -107,263 +272,6 @@
     }
   }
   </script>
-  <script type="module">
-    import * as THREE from 'three';
-    import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
-    import { RGBELoader } from 'three/addons/loaders/RGBELoader.js';
-
-    // Scene setup
-    const canvas = document.getElementById('canvas');
-    const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: true });
-    renderer.setSize(window.innerWidth, window.innerHeight);
-    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
-    renderer.toneMapping = THREE.ACESFilmicToneMapping;
-    renderer.toneMappingExposure = 1.2;
-    renderer.shadowMap.enabled = true;
-    renderer.shadowMap.type = THREE.PCFSoftShadowMap;
-
-    const scene = new THREE.Scene();
-    scene.background = new THREE.Color(0x1a1a2e);
-
-    const camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.1, 100);
-    camera.position.set(4, 3, 5);
-
-    const controls = new OrbitControls(camera, canvas);
-    controls.enableDamping = true;
-    controls.dampingFactor = 0.05;
-    controls.minDistance = 2;
-    controls.maxDistance = 20;
-    controls.target.set(0, 0, 0);
-
-    // Shapes
-    const geometries = {
-      cube: new THREE.BoxGeometry(1.5, 1.5, 1.5, 4, 4, 4),
-      sphere: new THREE.SphereGeometry(1, 64, 64),
-      torus: new THREE.TorusGeometry(0.8, 0.35, 32, 64),
-      cone: new THREE.ConeGeometry(1, 1.8, 32),
-      cylinder: new THREE.CylinderGeometry(0.8, 0.8, 1.8, 32),
-      dodecahedron: new THREE.DodecahedronGeometry(1.1, 1),
-      icosahedron: new THREE.IcosahedronGeometry(1.1, 1),
-      torusKnot: new THREE.TorusKnotGeometry(0.7, 0.25, 128, 32),
-    };
-
-    let currentShape = 'torusKnot';
-    let currentMesh = null;
-    let currentMaterial = null;
-    let rotationSpeed = 1;
-    let isAnimating = true;
-
-    // Environment maps
-    const environments = {
-      studio: 'https://dl.polyhaven.org/file/ph-assets/HDRIs/hdr/1k/studio_small_03_1k.hdr',
-      sunset: 'https://dl.polyhaven.org/file/ph-assets/HDRIs/hdr/1k/sunset_1k.hdr',
-      night: 'https://dl.polyhaven.org/file/ph-assets/HDRIs/hdr/1k/night_1k.hdr',
-      warehouse: 'https://dl.polyhaven.org/file/ph-assets/HDRIs/hdr/1k/warehouse_1k.hdr',
-    };
-    let currentEnv = 'studio';
-    let envMap = null;
-    const rgbeLoader = new RGBELoader();
-
-    function loadEnvironment(name) {
-      if (name === 'none') {
-        scene.environment = null;
-        scene.background = new THREE.Color(0x1a1a2e);
-        return;
-      }
-      const url = environments[name];
-      if (!url) return;
-      rgbeLoader.load(url, (texture) => {
-        texture.mapping = THREE.EquirectangularReflectionMapping;
-        scene.environment = texture;
-        scene.background = texture;
-        currentEnv = name;
-      });
-    }
-
-    // Materials
-    function createMaterial(type) {
-      const baseProps = {
-        color: 0x4361ee,
-        roughness: 0.3,
-        metalness: 0.6,
-        clearcoat: 0.2,
-        clearcoatRoughness: 0.1,
-      };
-
-      switch (type) {
-        case 'standard':
-          return new THREE.MeshStandardMaterial({ ...baseProps });
-        case 'phong':
-          return new THREE.MeshPhongMaterial({
-            color: 0x4361ee,
-            shininess: 80,
-            specular: 0x444444,
-            flatShading: false,
-          });
-        case 'basic':
-          return new THREE.MeshBasicMaterial({ color: 0x4361ee, wireframe: false });
-        case 'wireframe':
-          return new THREE.MeshBasicMaterial({ color: 0x4361ee, wireframe: true });
-        case 'normal':
-          return new THREE.MeshNormalMaterial({ flatShading: false });
-        default:
-          return new THREE.MeshStandardMaterial({ ...baseProps });
-      }
-    }
-
-    function createMesh(shapeName, materialType) {
-      if (currentMesh) {
-        scene.remove(currentMesh);
-        currentMesh.geometry.dispose();
-        if (currentMaterial) currentMaterial.dispose();
-      }
-
-      const geometry = geometries[shapeName].clone();
-      currentMaterial = createMaterial(materialType);
-      currentMesh = new THREE.Mesh(geometry, currentMaterial);
-      currentMesh.castShadow = true;
-      currentMesh.receiveShadow = true;
-      scene.add(currentMesh);
-      currentShape = shapeName;
-    }
-
-    // Lights
-    const ambientLight = new THREE.AmbientLight(0xffffff, 0.5);
-    scene.add(ambientLight);
-
-    const dirLight = new THREE.DirectionalLight(0xffffff, 1.5);
-    dirLight.position.set(5, 10, 7);
-    dirLight.castShadow = true;
-    dirLight.shadow.mapSize.width = 2048;
-    dirLight.shadow.mapSize.height = 2048;
-    dirLight.shadow.camera.near = 0.5;
-    dirLight.shadow.camera.far = 30;
-    dirLight.shadow.camera.left = -8;
-    dirLight.shadow.camera.right = 8;
-    dirLight.shadow.camera.top = 8;
-    dirLight.shadow.camera.bottom = -8;
-    dirLight.shadow.bias = -0.0005;
-    scene.add(dirLight);
-
-    const fillLight = new THREE.DirectionalLight(0x4361ee, 0.5);
-    fillLight.position.set(-5, 3, -5);
-    scene.add(fillLight);
-
-    const rimLight = new THREE.DirectionalLight(0xff6b6b, 0.4);
-    rimLight.position.set(0, -5, 0);
-    scene.add(rimLight);
-
-    // Ground plane
-    const groundGeo = new THREE.PlaneGeometry(50, 50);
-    const groundMat = new THREE.ShadowMaterial({ opacity: 0.15 });
-    const ground = new THREE.Mesh(groundGeo, groundMat);
-    ground.rotation.x = -Math.PI / 2;
-    ground.position.y = -1.5;
-    ground.receiveShadow = true;
-    scene.add(ground);
-
-    // Particles
-    const particlesGeo = new THREE.BufferGeometry();
-    const particlesCount = 500;
-    const positions = new Float32Array(particlesCount * 3);
-    const sizes = new Float32Array(particlesCount);
-    for (let i = 0; i < particlesCount; i++) {
-      positions[i * 3] = (Math.random() - 0.5) * 40;
-      positions[i * 3 + 1] = (Math.random() - 0.5) * 40;
-      positions[i * 3 + 2] = (Math.random() - 0.5) * 40;
-      sizes[i] = Math.random() * 2 + 0.5;
-    }
-    particlesGeo.setAttribute('position', new THREE.BufferAttribute(positions, 3));
-    particlesGeo.setAttribute('size', new THREE.BufferAttribute(sizes, 1));
-    const particlesMat = new THREE.PointsMaterial({
-      color: 0x4361ee,
-      size: 1,
-      transparent: true,
-      opacity: 0.4,
-      sizeAttenuation: true,
-    });
-    const particles = new THREE.Points(particlesGeo, particlesMat);
-    scene.add(particles);
-
-    // UI Setup
-    const shapeButtons = document.getElementById('shape-buttons');
-    Object.keys(geometries).forEach((name, i) => {
-      const btn = document.createElement('button');
-      btn.className = 'shape-btn' + (i === Object.keys(geometries).length - 1 ? ' active' : '');
-      btn.textContent = name.charAt(0).toUpperCase() + name.slice(1);
-      btn.onclick = () => {
-        document.querySelectorAll('.shape-btn').forEach(b => b.classList.remove('active'));
-        btn.classList.add('active');
-        createMesh(name, document.getElementById('material-select').value);
-      };
-      shapeButtons.appendChild(btn);
-    });
-
-    document.getElementById('material-select').onchange = (e) => {
-      createMesh(currentShape, e.target.value);
-    };
-
-    document.getElementById('env-select').onchange = (e) => {
-      loadEnvironment(e.target.value);
-    };
-
-    document.getElementById('reset-cam').onclick = () => {
-      controls.reset();
-      camera.position.set(4, 3, 5);
-      controls.target.set(0, 0, 0);
-    };
-
-    document.getElementById('toggle-anim').onclick = () => {
-      isAnimating = !isAnimating;
-    };
-
-    document.getElementById('speed-range').oninput = (e) => {
-      rotationSpeed = parseFloat(e.target.value);
-      document.getElementById('speed-val').textContent = rotationSpeed.toFixed(1);
-    };
-
-    // Keyboard
-    window.addEventListener('keydown', (e) => {
-      if (e.code === 'Space') {
-        e.preventDefault();
-        isAnimating = !isAnimating;
-      }
-      if (e.key === 'r' || e.key === 'R') {
-        controls.reset();
-        camera.position.set(4, 3, 5);
-        controls.target.set(0, 0, 0);
-      }
-    });
-
-    // Resize
-    window.addEventListener('resize', () => {
-      camera.aspect = window.innerWidth / window.innerHeight;
-      camera.updateProjectionMatrix();
-      renderer.setSize(window.innerWidth, window.innerHeight);
-    });
-
-    // Initial load
-    loadEnvironment('studio');
-    createMesh('torusKnot', 'standard');
-
-    // Animation loop
-    let time = 0;
-    function animate() {
-      requestAnimationFrame(animate);
-      const dt = 1 / 60;
-      time += dt;
-
-      if (isAnimating && currentMesh) {
-        currentMesh.rotation.x += 0.003 * rotationSpeed;
-        currentMesh.rotation.y += 0.005 * rotationSpeed;
-      }
-
-      particles.rotation.y += 0.0001;
-
-      controls.update();
-      renderer.render(scene, camera);
-    }
-    animate();
-  </script>
+  <script type="module" src="js/main.js"></script>
 </body>
 </html>

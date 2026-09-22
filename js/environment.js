@@ -1,0 +1,42 @@
+// environment.js - Environment map loading
+import * as THREE from 'three';
+import { RGBELoader } from 'three/addons/loaders/RGBELoader.js';
+
+const environments = {
+  studio: 'https://dl.polyhaven.org/file/ph-assets/HDRIs/hdr/1k/studio_small_03_1k.hdr',
+  sunset: 'https://dl.polyhaven.org/file/ph-assets/HDRIs/hdr/1k/sunset_1k.hdr',
+  night: 'https://dl.polyhaven.org/file/ph-assets/HDRIs/hdr/1k/night_1k.hdr',
+  warehouse: 'https://dl.polyhaven.org/file/ph-assets/HDRIs/hdr/1k/warehouse_1k.hdr',
+  forest: 'https://dl.polyhaven.org/file/ph-assets/HDRIs/hdr/1k/forest_1k.hdr',
+  apartment: 'https://dl.polyhaven.org/file/ph-assets/HDRIs/hdr/1k/apartment_1k.hdr',
+};
+
+let currentEnv = 'studio';
+const rgbeLoader = new RGBELoader();
+
+export function loadEnvironment(name, scene) {
+  if (name === 'none') {
+    scene.environment = null;
+    scene.background = new THREE.Color(0x1a1a2e);
+    currentEnv = 'none';
+    return;
+  }
+  
+  const url = environments[name];
+  if (!url) return;
+  
+  rgbeLoader.load(url, (texture) => {
+    texture.mapping = THREE.EquirectangularReflectionMapping;
+    scene.environment = texture;
+    scene.background = texture;
+    currentEnv = name;
+  });
+}
+
+export function getCurrentEnv() {
+  return currentEnv;
+}
+
+export function getEnvironments() {
+  return { ...environments };
+}
