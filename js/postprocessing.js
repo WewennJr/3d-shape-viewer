@@ -10,6 +10,7 @@ let composer = null;
 let bloomPass = null;
 let fxaaPass = null;
 let vignettePass = null;
+let boundRenderer = null;
 
 const vignetteShader = {
   uniforms: {
@@ -41,6 +42,7 @@ const vignetteShader = {
 };
 
 export function createComposer(renderer, scene, camera) {
+  boundRenderer = renderer;
   composer = new EffectComposer(renderer);
   composer.addPass(new RenderPass(scene, camera));
 
@@ -72,7 +74,10 @@ export function getComposer() {
   return composer;
 }
 
-export function setToneMapping(type, exposure) {
+// Tone mapping and exposure are renderer-level properties in Three.js; the
+// composer's intermediate render targets are always linear, so writing to
+// them (as earlier versions of this file did) had no visible effect.
+export function setToneMapping(type) {
   const toneMappingMap = {
     none: THREE.NoToneMapping,
     linear: THREE.LinearToneMapping,
@@ -80,18 +85,13 @@ export function setToneMapping(type, exposure) {
     cineon: THREE.CineonToneMapping,
     aces: THREE.ACESFilmicToneMapping,
   };
-  
-  if (composer) {
-    composer.renderTarget1.texture.toneMapping = toneMappingMap[type] || THREE.ACESFilmicToneMapping;
-    composer.renderTarget2.texture.toneMapping = toneMappingMap[type] || THREE.ACESFilmicToneMapping;
+  if (boundRenderer) {
+    boundRenderer.toneMapping = toneMappingMap[type] ?? THREE.ACESFilmicToneMapping;
   }
 }
 
 export function setExposure(value) {
-  if (composer) {
-    composer.renderTarget1.texture.toneMappingExposure = value;
-    composer.renderTarget2.texture.toneMappingExposure = value;
-  }
+  if (boundRenderer) boundRenderer.toneMappingExposure = value;
 }
 
 export function setBloomEnabled(enabled) {
@@ -124,13 +124,10 @@ export function setFXAAEnabled(enabled) {
 
 export function resizeComposer(width, height) {
   if (composer) {
+    const pixelRatio = boundRenderer ? boundRenderer.getPixelRatio() : 1;
     composer.setSize(width, height);
-    if (bloomPass) {
-      bloomPass.renderTargetX.setSize(width, height);
-      bloomPass.renderTargetY.setSize(width, height);
-    }
     if (fxaaPass) {
-      fxaaPass.material.uniforms['resolution'].value.set(1 / width, 1 / height);
+      fxaaPass.material.uniforms['resolution'].value.set(1 / (width * pixelRatio), 1 / (height * pixelRatio));
     }
   }
 }
@@ -140,4 +137,5 @@ export function disposeComposer() {
     composer.dispose();
     composer = null;
   }
+  boundRenderer = null;
 }

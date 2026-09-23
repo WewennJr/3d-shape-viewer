@@ -77,7 +77,16 @@ export function updateRimLight(intensity, color) {
 
 export function setShadowsEnabled(enabled) {
   if (dirLight) dirLight.castShadow = enabled;
+  if (ground) ground.visible = enabled ? ground.visible : ground.visible; // shadows off doesn't hide ground
   if (ground) ground.receiveShadow = enabled;
+}
+
+export function setGroundVisible(visible) {
+  if (ground) ground.visible = visible;
+}
+
+export function setGroundOpacity(opacity) {
+  if (ground && ground.material) ground.material.opacity = opacity;
 }
 
 export function getLights() {
