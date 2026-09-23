@@ -32,6 +32,9 @@ body { font-family: 'Inter', system-ui, -apple-system, sans-serif; background: v
   pointer-events: none;
   max-height: calc(100vh - 32px);
   width: 320px;
+  overflow-y: auto;
+  overflow-x: hidden;
+  scrollbar-gutter: stable;
 }
 
 #ui > h1 {
@@ -141,6 +144,12 @@ button {
   cursor: pointer;
   min-height: 42px;
 }
+button:disabled,
+select:disabled,
+input:disabled {
+  cursor: not-allowed;
+  opacity: 0.5;
+}
 button:hover { border-color: var(--border-hover); background: rgba(40, 40, 70, 0.9); }
 button:active { transform: scale(0.98); }
 button:focus-visible { outline: none; border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-glow); }
@@ -174,6 +183,10 @@ button:focus-visible { outline: none; border-color: var(--accent); box-shadow: 0
   border: none;
   padding: 0;
   cursor: pointer;
+}
+.slider-row input[type="range"]:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 3px var(--accent-glow);
 }
 .slider-row input[type="range"]::-webkit-slider-thumb {
   -webkit-appearance: none;
@@ -233,6 +246,11 @@ button:focus-visible { outline: none; border-color: var(--accent); box-shadow: 0
   flex-shrink: 0;
 }
 .checkbox-row label { font-size: 0.8rem; cursor: pointer; user-select: none; }
+.checkbox-row:focus-within {
+  outline: 2px solid var(--accent);
+  outline-offset: 3px;
+  border-radius: var(--radius-sm);
+}
 
 /* SHAPE BUTTONS GRID */
 .shape-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; }
@@ -304,4 +322,23 @@ button:focus-visible { outline: none; border-color: var(--accent); box-shadow: 0
   #stats { right: 8px; top: 8px; min-width: auto; }
   .shape-grid { grid-template-columns: repeat(4, 1fr); }
   .tab-btn { font-size: 0.65rem; padding: 6px 8px; }
+}
+
+@media (max-width: 420px) {
+  #ui { max-height: 58vh; }
+  #ui > h1 { font-size: 1rem; margin-bottom: 0.75rem; }
+  #controls { padding: 12px; }
+  .control-group { margin-bottom: 12px; }
+  .color-row > label { min-width: 58px; }
+  .shape-grid { grid-template-columns: repeat(2, 1fr); }
+  #stats { top: auto; bottom: 48px; left: 8px; right: auto; font-size: 0.6rem; }
+  #info { bottom: 4px; left: 8px; right: 8px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    scroll-behavior: auto !important;
+    transition-duration: 0.01ms !important;
+    animation-duration: 0.01ms !important;
+  }
 }
