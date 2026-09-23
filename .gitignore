@@ -26,9 +26,6 @@ coverage/
 .env
 .env.local
 
-# CNAME (GitHub Pages custom domain)
-CNAME
-
 # Cache
 .cache/
 *.tsbuildinfo
