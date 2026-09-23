@@ -4,11 +4,11 @@ import { RGBELoader } from 'three/addons/loaders/RGBELoader.js';
 
 const environments = {
   studio: 'https://dl.polyhaven.org/file/ph-assets/HDRIs/hdr/1k/studio_small_03_1k.hdr',
-  sunset: 'https://dl.polyhaven.org/file/ph-assets/HDRIs/hdr/1k/sunset_1k.hdr',
-  night: 'https://dl.polyhaven.org/file/ph-assets/HDRIs/hdr/1k/night_1k.hdr',
-  warehouse: 'https://dl.polyhaven.org/file/ph-assets/HDRIs/hdr/1k/warehouse_1k.hdr',
-  forest: 'https://dl.polyhaven.org/file/ph-assets/HDRIs/hdr/1k/forest_1k.hdr',
-  apartment: 'https://dl.polyhaven.org/file/ph-assets/HDRIs/hdr/1k/apartment_1k.hdr',
+  sunset: 'https://dl.polyhaven.org/file/ph-assets/HDRIs/hdr/1k/venice_sunset_1k.hdr',
+  night: 'https://dl.polyhaven.org/file/ph-assets/HDRIs/hdr/1k/moonlit_golf_1k.hdr',
+  warehouse: 'https://dl.polyhaven.org/file/ph-assets/HDRIs/hdr/1k/parking_garage_1k.hdr',
+  forest: 'https://dl.polyhaven.org/file/ph-assets/HDRIs/hdr/1k/woods_1k.hdr',
+  apartment: 'https://dl.polyhaven.org/file/ph-assets/HDRIs/hdr/1k/wooden_lounge_1k.hdr',
 };
 
 let currentEnv = 'studio';

@@ -92,7 +92,7 @@ setupEnvironmentUI((env) => {
 
 setupMaterialUI(
   (type) => {
-    createMesh(state.currentShape, type);
+    currentMesh = createMesh(state.currentShape, type);
     updateMaterialUIVisibility(type);
     state.currentMaterialType = type;
     state.materialParams = getMaterialParams();
@@ -204,7 +204,7 @@ setupKeyboard({
 // Shape buttons
 const shapeButtonsContainer = document.getElementById('shape-buttons');
 createShapeButtons(shapeButtonsContainer, (shapeName) => {
-  createMesh(shapeName, state.currentMaterialType);
+  currentMesh = createMesh(shapeName, state.currentMaterialType);
   setActiveShapeButton(shapeName);
 });
 
